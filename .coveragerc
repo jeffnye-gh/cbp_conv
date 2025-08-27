@@ -1,0 +1,15 @@
+[run]
+branch = True
+source = cbp_conv
+omit =
+    */__init__.py
+    tests/*
+
+[report]
+show_missing = True
+skip_covered = True
+precision = 1
+
+[html]
+directory = coverage_html
+

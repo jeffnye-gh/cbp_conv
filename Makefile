@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------
 #  This file is part of jnutils, made public 2023, (c) Jeff Nye.
 # --------------------------------------------------------------------
-.PHONY: all clean dirs run
+.PHONY: all clean run test unit functional cov one
 
 
 TARGET  = ./bin/cbp_conv
@@ -11,7 +11,8 @@ PKGCONF = pkg-config
 DEP  = -MMD -MP
 DEF  = -DSTRING_DEFINE="\"v1.1.1\""
 INC  = -Iinc $(shell $(PKGCONF) --cflags libarchive)
-OPT  = -O3 -pipe -march=native -mtune=native 
+#OPT  = -O3 -pipe -march=native -mtune=native 
+OPT  = -O0 -g
 STD  = -std=gnu++17
 WARN = -Wall
 LIBS     := $(shell $(PKGCONF) --libs libarchive)
@@ -38,26 +39,47 @@ obj/%.o: src/%.cpp
 
 run: $(TARGET)
 	@mkdir -p output
-	-rm -f output/sample.jsonl.gz
-	$(TARGET) --in traces/sample_int_trace.gz --out output/sample.jsonl.gz
-	$(TARGET) --in output/sample.jsonl.gz --out output/sample.0.txt
-	$(TARGET) --in output/sample.jsonl.gz --out output/sample.1.txt.gz
-	$(TARGET) --in output/sample.jsonl.gz --out output/sample.2.txt --limit 100
-	$(TARGET) --in output/sample.jsonl.gz --out output/sample.3.txt.gz --limit 100
+	-rm -f out/*
+	$(MAKE) one I=traces/int_trace     O=out/int_trace.asm     L=1024
 
-#unit:
-#	$(MAKE) pyt3 GROUP=$@
-#
-#integration:
-#	$(MAKE) pyt3 GROUP=$@
-#
-#stress:
-#	$(MAKE) pyt3 GROUP=$@
-#
-#pyt3:
-#	python3 -m pytest -m "$(GROUP)" -q 
+#	$(MAKE) one I=traces/int_trace     O=out/int_trace.txt     L=128
 
-#	$(TARGET) --in traces/sample_int_trace.gz --limit 100
+#works
+#	$(MAKE) one I=traces/int_trace     O=out/int_trace.txt     L=128
+#	$(MAKE) one I=traces/int_trace     O=out/int_trace.txt.gz  L=128 
+#	$(MAKE) one I=traces/int_trace     O=out/int_trace.txt.xz  L=128 
+#	$(MAKE) one I=traces/int_trace     O=out/int_trace.txt.bz2 L=128 
+#	\
+#	$(MAKE) one I=traces/int_trace.gz  O=out/int_trace_gz.txt  L=128 
+#	\
+#	$(MAKE) one I=traces/int_trace.xz  O=out/int_trace_xz.txt  L=128 
+#	\
+#	$(MAKE) one I=traces/int_trace.bz2 O=out/int_trace_xz.txt  L=128 
+
+# TODO:
+	#$(MAKE) one I=traces/int_trace.gz  O=out/int_trace_gz.xz   L=128 
+	#$(MAKE) one I=traces/int_trace.gz  O=out/int_trace_qz.bz2  L=128 
+	#$(MAKE) one I=traces/int_trace.xz  O=out/int_trace_xz.gz   L=128 
+	#$(MAKE) one I=traces/int_trace.xz  O=out/int_trace_xz.bz2  L=128 
+	#$(MAKE) one I=traces/int_trace.bz2 O=out/int_trace_xz.gz   L=128 
+	#$(MAKE) one I=traces/int_trace.bz2 O=out/int_trace_xz.xz  L=128 
+
+
+#	$(MAKE) one I=traces/int_trace.bz2 O=out/int_trace_bz.txt L=128 
+#	\
+
+one: $(TARGET)
+	$(TARGET) --in $(I) --out $(O) --limit $(L)
+
+unit:
+	pytest -m unit
+functional:
+	pytest -m functional
+test:
+	pytest -m "unit or functional"
+cov:
+	pytest -m "unit or functional" --cov=cbp_conv \
+            --cov-report=term-missing --cov-report=html
 
 help-%:
 	@echo $* = $($*)
@@ -65,5 +87,5 @@ help-%:
 -include $(ALL_DEP)
 
 clean:
-	@rm -rf obj/* $(TARGET)
+	@rm -rf obj/* $(TARGET) bin/*
 

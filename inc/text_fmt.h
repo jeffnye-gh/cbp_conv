@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "cbp_trace_reader.h"
+#include "trace_reader.h"
 
-// Format one db_t like your sample text file line.
+// Format one db_t like a line from sample text file
 std::string format_text_line(const db_t& d);
 
