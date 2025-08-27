@@ -43,3 +43,4 @@
 # debug information files
 *.dwo
 
+traces/CBP2025.sample.trace.txt
